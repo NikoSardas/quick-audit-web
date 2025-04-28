@@ -76,10 +76,35 @@
           border-radius: 5px;
         "
       >
-        Export
+        Export to Clipboard
       </button>
     </div>
 
+    <div
+      class="backup-zone"
+      style="
+        margin-top: 30px;
+        padding: 15px;
+        border: 2px solid #2980b9;
+        background: #eaf4fb;
+        border-radius: 8px;
+      "
+    >
+      <h4 style="color: #2980b9">Save/Load Backup</h4>
+      <button
+        class="btn"
+        onclick="downloadData()"
+        style="background-color: #3498db; color: white; margin-bottom: 10px;"
+      >
+        Save Backup
+      </button>
+      <input
+        type="file"
+        id="fileInput"
+        onchange="loadData(event)"
+        style="display: block; margin-top: 10px;"
+      />
+    </div>
     <div
       class="danger-zone"
       style="
@@ -219,6 +244,40 @@
         `;
           list.appendChild(row);
         }
+      }
+
+      function downloadData() {
+        const data = {
+          items,
+          notes,
+          auditTitle,
+        };
+        const blob = new Blob([JSON.stringify(data)], {
+          type: 'application/json',
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const now = new Date();
+        const dateString = now.toISOString().split('T')[0]; // e.g., "2024-05-20"
+        a.download = `${auditTitle} ${dateString}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      function loadData(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const loadedData = JSON.parse(e.target.result);
+          items = loadedData.items || {};
+          notes = loadedData.notes || '';
+          auditTitle = loadedData.auditTitle || 'Quick Audit';
+          saveAndRender();
+        };
+        reader.readAsText(file);
       }
     </script>
   </body>
